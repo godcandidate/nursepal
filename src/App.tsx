@@ -1,4 +1,3 @@
-
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { Header } from './components/Header';
@@ -7,7 +6,7 @@ import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
 import { Dashboard } from './pages/Dashboard';
-import { Course } from './pages/Course';
+import { CourseDetail } from './pages/CourseDetail';
 import { Test } from './pages/Test';
 
 function App() {
@@ -22,8 +21,8 @@ function App() {
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
               <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/course/:id" element={<Course />} />
-              <Route path="/course/:courseId/test/:testId" element={<Test />} />
+              <Route path="/course/:courseId" element={<CourseDetail />} />
+              <Route path="/course/:courseId/test/:testId/:mode" element={<Test />} />
             </Routes>
           </main>
           <Footer />

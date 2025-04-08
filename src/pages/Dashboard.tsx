@@ -1,10 +1,62 @@
 import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { mockCourses } from "../data";
+import { coursesApi } from "../api/api";
+import type { Course } from "../api/types";
+
+interface UserProgress {
+  [courseId: string]: {
+    completed: number;
+    score?: number;
+  };
+}
+
+interface User extends Record<string, unknown> {
+  name: string;
+  progress?: UserProgress;
+}
+
 import { BookOpen, Clock, Award, ChevronRight } from "lucide-react";
+import { useEffect, useState } from "react";
 
 export const Dashboard: React.FC = () => {
-  const { user } = useAuth();
+  const { user } = useAuth() as { user: User | null };
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchCourses = async () => {
+      try {
+        const data = await coursesApi.getCourses();
+        setCourses(data);
+      } catch (error: Error | unknown) {
+        console.error('Failed to load courses:', error instanceof Error ? error.message : 'Unknown error');
+        setError('Failed to load courses');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+          {error}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -26,7 +78,7 @@ export const Dashboard: React.FC = () => {
                 <BookOpen className="h-6 w-6 text-primary-100" />
                 <div>
                   <p className="text-sm text-primary-100">Courses</p>
-                  <p className="text-2xl font-bold">{mockCourses.length}</p>
+                  <p className="text-2xl font-bold">{courses.length}</p>
                 </div>
               </div>
             </div>
@@ -56,20 +108,19 @@ export const Dashboard: React.FC = () => {
       <div className="mb-8">
         <h2 className="text-2xl font-bold text-gray-900 mb-6">Your Courses</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {mockCourses.map((course) => {
-            const progress = user?.progress?.[course.id];
-            const totalQuestions = course.questions?.length ?? 0;
-            const progressPercentage =
-              progress && totalQuestions > 0
-                ? (progress.completed / totalQuestions) * 100
-                : 0;
+          {courses.length === 0 ? (
+            <p>No courses available</p>
+          ) : (
+            courses.map((course) => {
+              const courseProgress = user?.progress?.[course.id] ?? { completed: 0, score: undefined };
+              const progressPercentage = courseProgress.completed;
 
-            return (
-              <Link
-                key={course.id}
-                to={`/course/${course.id}`}
-                className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden"
-              >
+              return (
+                <Link
+                  key={course.id}
+                  to={`/course/${course.id}`}
+                  className="group bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-200 overflow-hidden"
+                >
                 <div className="p-6">
                   <div className="flex justify-between items-start">
                     <div>
@@ -96,17 +147,18 @@ export const Dashboard: React.FC = () => {
                         className="h-full bg-primary-600 rounded-full transition-all duration-500"
                       />
                     </div>
-                    {progress && (
+                    {courseProgress.score && (
                       <p className="mt-2 text-sm text-gray-500 flex items-center">
                         <Award className="h-4 w-4 mr-1 text-secondary-500" />
-                        Best Score: {progress.score}%
+                        Best Score: {courseProgress.score}%
                       </p>
                     )}
                   </div>
                 </div>
-              </Link>
-            );
-          })}
+                </Link>
+              );
+            })
+          )}
         </div>
       </div>
     </div>
