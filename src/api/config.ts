@@ -10,4 +10,9 @@ export const endpoints = {
     overview: (courseId: string) => `/courses/${courseId}`,
     test: (courseId: string, testId: string) => `/courses/${courseId}/${testId}`,
   },
+  scores: {
+    submit: '/tests/scores',
+    list: '/tests/scores',
+    rank: '/rank/me',
+  },
 };

@@ -20,9 +20,25 @@ export const authApi = {
     return response.data;
   },
 
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>(endpoints.auth.login, data);
-    return response.data;
+  async login(email: string, password: string): Promise<AuthResponse> {
+    try {
+      const response = await api.post<AuthResponse>(endpoints.auth.login, {
+        email,
+        password,
+      });
+      
+      // Ensure we have a response and it's successful
+      if (!response.data || !response.data.success) {
+        throw new Error(response.data?.message || 'Invalid login credentials');
+      }
+      return response.data;
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.data) {
+        const message = error.response.data.message || 'Login failed. Please try again.';
+        throw new Error(message);
+      }
+      throw error; // Re-throw the original error
+    }
   },
 };
 
@@ -39,6 +55,22 @@ export const coursesApi = {
 
   async getTestQuestions(courseId: string, testId: string): Promise<TestQuestion[]> {
     const response = await api.get<TestQuestion[]>(endpoints.courses.test(courseId, testId));
+    return response.data;
+  },
+};
+
+export const scoresApi = {
+  async submitScore(testScore: { testId: string; score: number }): Promise<void> {
+    await api.post(endpoints.scores.submit, testScore);
+  },
+
+  async getScores(): Promise<{ testId: string; score: number }[]> {
+    const response = await api.get(endpoints.scores.list);
+    return response.data;
+  },
+
+  async getRank(): Promise<{ rank: number; totalUsers: number }> {
+    const response = await api.get(endpoints.scores.rank);
     return response.data;
   },
 };

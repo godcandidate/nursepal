@@ -2,7 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  progress: {
+  progress?: {
     [courseId: number]: {
       completed: number;
       score: number;
@@ -40,9 +40,18 @@ export interface Course {
   tests: Test[];
 }
 
+export interface CourseTest {
+  id: string;
+  title: string;
+  description: string;
+  timeLimit: number; // in minutes
+  questions: number; // number of questions
+}
+
 export interface AuthContextType {
   user: User | null;
-  login: (email: string, password: string) => void;
-  signup: (name: string, email: string, password: string) => void;
+  error: string | null;
+  login: (email: string, password: string) => Promise<void>;
+  signup: (name: string, email: string, password: string) => Promise<void>;
   logout: () => void;
 }

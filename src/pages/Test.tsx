@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { coursesApi } from '../api/api';
+import { coursesApi, scoresApi } from '../api/api';
 import { TestQuestion } from '../api/types';
 import { ChevronLeft, ChevronRight, CheckCircle, XCircle } from 'lucide-react';
 
@@ -21,6 +21,12 @@ export const Test: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [testCompleted, setTestCompleted] = useState(false);
+  const [showIntro, setShowIntro] = useState(true);
+
+  const calculateScore = useCallback(() => {
+    const correctAnswers = answers.filter((a) => a.isCorrect).length;
+    return Math.round((correctAnswers / questions.length) * 100);
+  }, [answers, questions.length]);
 
   useEffect(() => {
     const fetchQuestions = async () => {
@@ -40,6 +46,17 @@ export const Test: React.FC = () => {
     fetchQuestions();
   }, [courseId, testId]);
 
+  useEffect(() => {
+    if (testCompleted && testId) {
+      const score = calculateScore();
+      scoresApi.submitScore({ testId, score })
+        .catch(error => {
+          console.error('Failed to submit score:', error instanceof Error ? error.message : 'Unknown error');
+          setError('Failed to submit score');
+        });
+    }
+  }, [testCompleted, testId, calculateScore]);
+
   if (loading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
@@ -53,6 +70,47 @@ export const Test: React.FC = () => {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
           {error}
+        </div>
+      </div>
+    );
+  }
+
+  if (showIntro && testId === '0') {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div className="bg-white rounded-lg shadow-sm p-8">
+          <h1 className="text-3xl font-bold text-gray-900 mb-6">Biblical Studies Practice</h1>
+          
+          <div className="prose prose-blue max-w-none mb-8">
+            <p className="text-lg text-gray-600 mb-4">
+              Welcome to the Biblical Studies Practice test. This introduction will help you understand how the test works.
+            </p>
+            
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Test Format</h2>
+            <ul className="space-y-2 text-gray-600 mb-6">
+              <li>• Each test contains multiple-choice questions</li>
+              <li>• You can review your answers in practice mode</li>
+              <li>• Explanations are provided for each answer</li>
+              <li>• Track your progress and scores</li>
+            </ul>
+
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Tips for Success</h2>
+            <ul className="space-y-2 text-gray-600 mb-6">
+              <li>• Read each question carefully</li>
+              <li>• Consider all options before selecting an answer</li>
+              <li>• Use the explanations to learn from mistakes</li>
+              <li>• Practice regularly to improve your knowledge</li>
+            </ul>
+          </div>
+
+          <div className="flex justify-center">
+            <button
+              onClick={() => navigate(`/courses/${courseId}/test/1/practice`)}
+              className="px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+            >
+              Start Practice Test
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -76,10 +134,9 @@ export const Test: React.FC = () => {
     }
   };
 
-  const calculateScore = () => {
-    const correctAnswers = answers.filter((a) => a.isCorrect).length;
-    return Math.round((correctAnswers / questions.length) * 100);
-  };
+
+
+
 
   if (testCompleted) {
     const score = calculateScore();
