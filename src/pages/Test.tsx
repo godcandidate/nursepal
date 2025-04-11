@@ -81,14 +81,35 @@ export const useTestLogic = () => {
     }
   }, [testCompleted, testId, calculateScore]);
 
-  const handleAnswer = (selectedOption: string) => {
-    if (!currentQuestion) return;
-    const isCorrect = selectedOption === currentQuestion.answer;
-    setAnswers([
-      ...answers,
-      { questionId: currentQuestion.id, selectedOption, isCorrect },
-    ]);
-  };
+  const handleAnswer = useCallback(
+    (selectedOption: string) => {
+      if (!currentQuestion) return;
+
+      const existingAnswerIndex = answers.findIndex(
+        (a) => a.questionId === currentQuestion.id
+      );
+
+      const isCorrect = selectedOption === currentQuestion.answer;
+      const newAnswer = {
+        questionId: currentQuestion.id,
+        selectedOption,
+        isCorrect,
+      };
+
+      if (existingAnswerIndex >= 0 && !isPracticeMode) {
+        // In exam mode, allow changing answers
+        setAnswers((prev) => [
+          ...prev.slice(0, existingAnswerIndex),
+          newAnswer,
+          ...prev.slice(existingAnswerIndex + 1),
+        ]);
+      } else if (existingAnswerIndex === -1) {
+        // Add new answer
+        setAnswers((prev) => [...prev, newAnswer]);
+      }
+    },
+    [currentQuestion, answers, isPracticeMode]
+  );
 
   const handleNext = () => {
     if (isLastQuestion) {
@@ -151,5 +172,6 @@ export const useTestLogic = () => {
     timeRemaining,
     formatTime,
     examStartTime,
+    courseId,
   };
 };
