@@ -1,10 +1,11 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { AuthProvider } from './context/AuthContext';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
+import { PrivateRoute } from './components/PrivateRoute';
 import { Home } from './pages/Home';
 import { Login } from './pages/Login';
 import { SignUp } from './pages/SignUp';
@@ -24,9 +25,26 @@ function App() {
               <Route path="/" element={<Home />} />
               <Route path="/login" element={<Login />} />
               <Route path="/signup" element={<SignUp />} />
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/course/:courseId" element={<CourseDetail />} />
-              <Route path="/course/:courseId/test/:testId/:mode" element={<Test />} />
+              
+              {/* Protected Routes */}
+              <Route path="/dashboard" element={
+                <PrivateRoute>
+                  <Dashboard />
+                </PrivateRoute>
+              } />
+              <Route path="/course/:courseId" element={
+                <PrivateRoute>
+                  <CourseDetail />
+                </PrivateRoute>
+              } />
+              <Route path="/course/:courseId/test/:testId/:mode" element={
+                <PrivateRoute>
+                  <Test />
+                </PrivateRoute>
+              } />
+
+              {/* Catch all route - redirect to home */}
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </main>
           <Footer />

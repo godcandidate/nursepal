@@ -8,7 +8,10 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const navigate = useNavigate();
-  const [user, setUser] = useState<User | null>(null);
+  const [user, setUser] = useState<User | null>(() => {
+    const savedUser = localStorage.getItem('user');
+    return savedUser ? JSON.parse(savedUser) : null;
+  });
   const [error, setError] = useState<string | null>(null);
 
   const login = async (email: string, password: string) => {
@@ -17,42 +20,48 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       const response = await authApi.login(email, password);
-      // Only set user and navigate if we get here (no error thrown)
       if (response.success) {
-        setUser({ id: '', name: response.name, email });
+        const userData = { id: '', name: response.name, email };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
         toast.success('Login successful');
-        navigate('/dashboard');
-        return; // Exit early on success
+        return true; // Return success so the component can handle navigation
       }
-      // Should not get here due to API throwing on !success
-      setError('Invalid login attempt');
-      toast.error('Invalid login attempt');
+      throw new Error('Invalid login attempt');
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed';
       setError(errorMessage);
       toast.error(errorMessage);
+      return false;
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
+    setError(null);
     try {
       const response = await authApi.register({ name, email, password });
       if (response.success) {
-        setUser({ id: '', name: response.name, email });
+        const userData = { id: '', name: response.name, email };
+        setUser(userData);
+        localStorage.setItem('user', JSON.stringify(userData));
         toast.success('Signup successful');
-        navigate('/dashboard');
+        return true;
       }
+      throw new Error('Signup failed');
     } catch (error) {
-      setError(error instanceof Error ? error.message : 'Signup failed');
-      toast.error(error instanceof Error ? error.message : 'Signup failed');
+      const errorMessage = error instanceof Error ? error.message : 'Signup failed';
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return false;
     }
   };
 
   const logout = () => {
+    localStorage.removeItem('user');
     setUser(null);
     setError(null);
-    navigate('/');
     toast.success('Logged out successfully');
+    navigate('/');
   };
 
   return (

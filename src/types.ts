@@ -49,7 +49,7 @@ export interface CourseTest {
 export interface AuthContextType {
   user: User | null;
   error: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  signup: (name: string, email: string, password: string) => Promise<void>;
+  login: (email: string, password: string) => Promise<boolean>;
+  signup: (name: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
 }
