@@ -41,11 +41,9 @@ export interface Course {
 }
 
 export interface CourseTest {
-  id: string;
+  id: number;
   title: string;
-  description: string;
-  timeLimit: number; // in minutes
-  questions: number; // number of questions
+  numberOfTests: number; // number of questions available
 }
 
 export interface AuthContextType {

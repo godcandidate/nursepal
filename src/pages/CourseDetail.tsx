@@ -57,34 +57,53 @@ export const CourseDetail: React.FC = () => {
               className="bg-white rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow"
             >
               <div className="flex items-center justify-between">
-                <div>
+                <div className="flex-grow">
                   <h3 className="text-xl font-semibold text-gray-900 mb-2">{test.title}</h3>
-                  <p className="text-gray-600">{test.description}</p>
-                  <div className="mt-4 space-x-4">
-                    <Link
-                      to={`/course/${courseId}/test/${test.id}/practice`}
-                      className="inline-flex items-center text-primary-600 hover:text-primary-700"
-                    >
-                      Practice Mode
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Link>
-                    <Link
-                      to={`/course/${courseId}/test/${test.id}/exam`}
-                      className="inline-flex items-center text-primary-600 hover:text-primary-700"
-                    >
-                      Exam Mode
-                      <ChevronRight className="h-4 w-4 ml-1" />
-                    </Link>
-                  </div>
+                  {test.id === 0 ? (
+                    <div className="mt-2">
+                      <p className="text-gray-600 mb-4">Welcome to Biblical Studies Practice. Get started with your journey here.</p>
+                      <Link
+                        to={`/course/${courseId}/test/${test.id}/practice`}
+                        className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                      >
+                        Start Introduction
+                        <ChevronRight className="h-4 w-4 ml-1" />
+                      </Link>
+                    </div>
+                  ) : (
+                    <div>
+                      <p className="text-gray-600 mb-4">
+                        This test contains {test.numberOfTests} questions to assess your knowledge.
+                      </p>
+                      <div className="flex space-x-4">
+                        <Link
+                          to={`/course/${courseId}/test/${test.id}/practice`}
+                          className="inline-flex items-center px-4 py-2 bg-primary-100 text-primary-700 rounded-lg hover:bg-primary-200 transition-colors"
+                        >
+                          Practice Mode
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Link>
+                        <Link
+                          to={`/course/${courseId}/test/${test.id}/exam`}
+                          className="inline-flex items-center px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
+                        >
+                          Exam Mode
+                          <ChevronRight className="h-4 w-4 ml-1" />
+                        </Link>
+                      </div>
+                    </div>
+                  )}
                 </div>
-                <div className="text-right">
-                  <div className="text-sm text-gray-600">
-                    {test.questions || 'N/A'} questions
+                {test.id !== 0 && (
+                  <div className="ml-6 text-right">
+                    <div className="text-sm font-medium text-gray-900">
+                      {test.numberOfTests}
+                    </div>
+                    <div className="text-xs text-gray-500">
+                      Questions
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600">
-                    {test.timeLimit || 'N/A'} minutes
-                  </div>
-                </div>
+                )}
               </div>
             </div>
           ))}
