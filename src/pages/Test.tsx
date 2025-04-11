@@ -28,6 +28,8 @@ export const useTestLogic = () => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [answers, setAnswers] = useState<Answer[]>([]);
+  const [timeRemaining, setTimeRemaining] = useState<number | null>(null);
+  const [examStartTime, setExamStartTime] = useState<Date | null>(null);
 
   const calculateScore = useCallback(() => {
     const correctAnswers = answers.filter((a) => a.isCorrect).length;
@@ -39,6 +41,17 @@ export const useTestLogic = () => {
   const currentQuestion = questions[currentQuestionIndex];
 
   // Fetch questions from API
+  // Start exam timer
+  useEffect(() => {
+    if (!isPracticeMode && !examStartTime && !testCompleted && questions.length > 0) {
+      setExamStartTime(new Date());
+      // Set time as half the number of questions in minutes
+      const timeInMinutes = Math.ceil(questions.length / 2);
+      setTimeRemaining(timeInMinutes * 60);
+    }
+  }, [isPracticeMode, examStartTime, testCompleted, questions.length]);
+
+  // Fetch questions
   useEffect(() => {
     const fetchQuestions = async () => {
       try {
@@ -97,6 +110,30 @@ export const useTestLogic = () => {
     setTestCompleted(false);
   };
 
+  // Timer effect
+  useEffect(() => {
+    if (!isPracticeMode && timeRemaining !== null && !testCompleted) {
+      const timer = setInterval(() => {
+        setTimeRemaining((prev) => {
+          if (prev === null || prev <= 0) {
+            clearInterval(timer);
+            setTestCompleted(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+
+      return () => clearInterval(timer);
+    }
+  }, [isPracticeMode, timeRemaining, testCompleted]);
+
+  const formatTime = (seconds: number): string => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+  };
+
   return {
     loading,
     error,
@@ -111,5 +148,8 @@ export const useTestLogic = () => {
     handleNext,
     handlePrevious,
     resetTest,
+    timeRemaining,
+    formatTime,
+    examStartTime,
   };
 };

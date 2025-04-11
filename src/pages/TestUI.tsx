@@ -19,6 +19,9 @@ export const TestUI: React.FC = () => {
     handleNext,
     handlePrevious,
     resetTest,
+    timeRemaining,
+    formatTime,
+    examStartTime,
   } = useTestLogic();
 
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -96,9 +99,16 @@ export const TestUI: React.FC = () => {
       <div className="min-h-screen p-4 sm:p-6 lg:p-8">
         <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
-              Test Completed!
-            </h2>
+            <div className="flex items-center justify-between mb-8">
+              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                Test Completed!
+              </h2>
+              {!isPracticeMode && examStartTime && (
+                <div className="text-sm text-gray-600">
+                  Time taken: {formatTime(Math.floor((new Date().getTime() - examStartTime.getTime()) / 1000))}
+                </div>
+              )}
+            </div>
             <div className="mb-8">
               <div className="text-4xl sm:text-5xl font-bold text-primary-600 mb-2">
                 {score}%
@@ -109,42 +119,51 @@ export const TestUI: React.FC = () => {
               </p>
             </div>
 
-            {/* Display all questions and answers */}
-            <div className="space-y-6">
-              {questions.map((question, index) => {
-                const answer = answers.find(
-                  (a) => a.questionId === question.id
-                );
-                const isCorrect = answer?.selectedOption === question.answer;
+            {!isPracticeMode ? (
+              <div className="mt-8 pt-8 border-t border-gray-200">
+                <h3 className="text-lg font-semibold text-gray-900 mb-4">Review Questions</h3>
+                <div className="space-y-6">
+                  {questions.map((question, index) => {
+                    const answer = answers.find(a => a.questionId === question.id);
+                    const isCorrect = answer?.selectedOption === question.answer;
 
-                return (
-                  <div key={question.id}>
-                    <h3 className="text-lg font-bold text-gray-900 mb-2">
-                      Question {index + 1}: {question.question}
-                    </h3>
-                    <p className="text-gray-700 mb-2">
-                      Your answer:{" "}
-                      <span
-                        className={`font-medium ${
-                          isCorrect ? "text-green-600" : "text-red-600"
-                        }`}
-                      >
-                        {answer?.selectedOption || "Not answered"}
-                      </span>
-                    </p>
-                    <p className="text-gray-700 mb-2">
-                      Correct answer:{" "}
-                      <span className="font-medium text-green-600">
-                        {question.answer}
-                      </span>
-                    </p>
-                    <p className="text-gray-600">
-                      Explanation: {question.explanation}
-                    </p>
-                  </div>
-                );
-              })}
-            </div>
+                    return (
+                      <div key={question.id} className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm">
+                        <div className="flex items-start gap-4">
+                          <div className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${isCorrect ? 'bg-green-100 text-green-600' : 'bg-red-100 text-red-600'}`}>
+                            {isCorrect ? '✓' : '✗'}
+                          </div>
+                          <div className="flex-1">
+                            <h4 className="font-medium text-gray-900 mb-2">Question {index + 1}</h4>
+                            <p className="text-gray-700 mb-4">{question.question}</p>
+                            
+                            <div className="space-y-2 mb-4">
+                              <div className="text-sm">
+                                <span className="text-gray-500">Your answer: </span>
+                                <span className={isCorrect ? 'text-green-600' : 'text-red-600'}>
+                                  {answer?.selectedOption || 'Not answered'}
+                                </span>
+                              </div>
+                              {!isCorrect && (
+                                <div className="text-sm">
+                                  <span className="text-gray-500">Correct answer: </span>
+                                  <span className="text-green-600">{question.answer}</span>
+                                </div>
+                              )}
+                            </div>
+                            
+                            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                              <span className="font-medium">Explanation: </span>
+                              {question.explanation}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : null}
 
             <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row mt-8">
               <button
@@ -173,14 +192,20 @@ export const TestUI: React.FC = () => {
         <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
-                Question {currentQuestionIndex + 1} of {questions.length}
-              </h2>
-              {isPracticeMode && (
-                <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
-                  Practice Mode
-                </span>
-              )}
+              <div className="flex items-center gap-4">
+                <h2 className="text-xl sm:text-2xl font-bold text-gray-900">
+                  Question {currentQuestionIndex + 1} of {questions.length}
+                </h2>
+                {isPracticeMode ? (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+                    Practice Mode
+                  </span>
+                ) : timeRemaining !== null && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-orange-100 text-orange-800">
+                    Time remaining: {formatTime(timeRemaining)}
+                  </span>
+                )}
+              </div>
             </div>
             <div className="h-2 bg-gray-200 rounded-full">
               <div
@@ -223,8 +248,8 @@ export const TestUI: React.FC = () => {
                 );
               })}
 
-              {/* Show explanation below options */}
-              {answers.some((a) => a.questionId === currentQuestion?.id) && (
+              {/* Show explanation below options only in practice mode */}
+              {isPracticeMode && answers.some((a) => a.questionId === currentQuestion?.id) && (
                 <div className="mt-6 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-xl border border-blue-100 shadow-sm">
                   <div className="flex items-start space-x-3">
                     <div className="flex-shrink-0">
