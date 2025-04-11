@@ -1,9 +1,10 @@
 import React from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { useTestLogic } from "./Test";
 
 export const TestUI: React.FC = () => {
   const navigate = useNavigate();
+  const { courseId } = useParams();
   const {
     loading,
     error,
@@ -21,7 +22,6 @@ export const TestUI: React.FC = () => {
     timeRemaining,
     formatTime,
     examStartTime,
-    courseId,
   } = useTestLogic();
 
   const isLastQuestion = currentQuestionIndex === questions.length - 1;
@@ -114,122 +114,65 @@ export const TestUI: React.FC = () => {
     const score = calculateScore();
 
     return (
-      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
         <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
-            <div className="flex items-center justify-between mb-8">
-              <h2 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Test Completed!
+          <div className="bg-white rounded-2xl shadow-lg p-8 relative overflow-hidden">
+            {/* Background decoration */}
+            <div className="absolute top-0 right-0 w-40 h-40 bg-gradient-to-br from-primary-100 to-primary-50 rounded-bl-full opacity-50 -z-10" />
+            
+            <div className="text-center mb-12">
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">
+                {isPracticeMode ? "Practice Complete!" : "Exam Complete!"}
               </h2>
               {!isPracticeMode && examStartTime && (
-                <div className="text-sm text-gray-600">
-                  Time taken:{" "}
+                <p className="text-gray-600">
+                  Time taken: {" "}
                   {formatTime(
                     Math.floor(
                       (new Date().getTime() - examStartTime.getTime()) / 1000
                     )
                   )}
-                </div>
+                </p>
               )}
             </div>
-            <div className="mb-8">
-              <div className="text-4xl sm:text-5xl font-bold text-primary-600 mb-2">
-                {score}%
+
+            <div className="flex flex-col items-center mb-12">
+              {/* Score circle */}
+              <div className="relative mb-6">
+                <div className="w-32 h-32 rounded-full bg-gradient-to-br from-primary-500 to-primary-600 flex items-center justify-center shadow-lg">
+                  <div className="w-28 h-28 rounded-full bg-white flex items-center justify-center">
+                    <span className="text-4xl font-bold bg-gradient-to-br from-primary-600 to-primary-500 text-transparent bg-clip-text">
+                      {score}%
+                    </span>
+                  </div>
+                </div>
+                {/* Decorative elements */}
+                <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-primary-200" />
+                <div className="absolute -bottom-1 -left-1 w-4 h-4 rounded-full bg-primary-300" />
               </div>
-              <p className="text-gray-600">
-                You answered {answers.filter((a) => a.isCorrect).length} out of{" "}
-                {questions.length} questions correctly.
-              </p>
+              
+              <div className="text-center">
+                <p className="text-xl text-gray-700 mb-2">
+                  You got <span className="font-semibold text-primary-600">{answers.filter(a => a.isCorrect).length}</span> out of <span className="font-semibold text-primary-600">{questions.length}</span> correct
+                </p>
+                <p className="text-gray-500">
+                  {score >= 70 ? "Great job! 🎉" : "Keep practicing! 💪"}
+                </p>
+              </div>
             </div>
 
-            {!isPracticeMode ? (
-              <div className="mt-8 pt-8 border-t border-gray-200">
-                <h3 className="text-lg font-semibold text-gray-900 mb-4">
-                  Review Questions
-                </h3>
-                <div className="space-y-6">
-                  {questions.map((question, index) => {
-                    const answer = answers.find(
-                      (a) => a.questionId === question.id
-                    );
-                    const isCorrect =
-                      answer?.selectedOption === question.answer;
-
-                    return (
-                      <div
-                        key={question.id}
-                        className="p-4 bg-white rounded-lg border border-gray-200 shadow-sm"
-                      >
-                        <div className="flex items-start gap-4">
-                          <div
-                            className={`flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center ${
-                              isCorrect
-                                ? "bg-green-100 text-green-600"
-                                : "bg-red-100 text-red-600"
-                            }`}
-                          >
-                            {isCorrect ? "✓" : "✗"}
-                          </div>
-                          <div className="flex-1">
-                            <h4 className="font-medium text-gray-900 mb-2">
-                              Question {index + 1}
-                            </h4>
-                            <p className="text-gray-700 mb-4">
-                              {question.question}
-                            </p>
-
-                            <div className="space-y-2 mb-4">
-                              <div className="text-sm">
-                                <span className="text-gray-500">
-                                  Your answer:{" "}
-                                </span>
-                                <span
-                                  className={
-                                    isCorrect
-                                      ? "text-green-600"
-                                      : "text-red-600"
-                                  }
-                                >
-                                  {answer?.selectedOption || "Not answered"}
-                                </span>
-                              </div>
-                              {!isCorrect && (
-                                <div className="text-sm">
-                                  <span className="text-gray-500">
-                                    Correct answer:{" "}
-                                  </span>
-                                  <span className="text-green-600">
-                                    {question.answer}
-                                  </span>
-                                </div>
-                              )}
-                            </div>
-
-                            <div className="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                              <span className="font-medium">Explanation: </span>
-                              {question.explanation}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="space-y-4 sm:space-y-0 sm:space-x-4 flex flex-col sm:flex-row mt-8">
+            <div className="flex justify-center gap-6">
               <button
-                onClick={resetTest}
-                className="w-full sm:w-auto px-6 py-3 bg-primary-600 text-white rounded-lg hover:bg-primary-700 transition-colors"
-              >
-                Try Again
-              </button>
-              <button
-                onClick={() => navigate(`/courses/${courseId}`)}
-                className="w-full sm:w-auto px-6 py-3 rounded-lg bg-gray-100 text-gray-600 hover:bg-gray-200 transition-colors"
+                onClick={() => navigate(`/course/${courseId}`)}
+                className="px-6 py-3 text-gray-700 bg-white border-2 border-gray-200 rounded-xl hover:bg-gray-50 hover:border-gray-300 transition-all duration-200 shadow-sm"
               >
                 Back to Course
+              </button>
+              <button
+                onClick={resetTest}
+                className="px-6 py-3 text-white bg-gradient-to-r from-primary-600 to-primary-500 rounded-xl hover:from-primary-700 hover:to-primary-600 transition-all duration-200 shadow-md hover:shadow-lg"
+              >
+                Try Again
               </button>
             </div>
           </div>
