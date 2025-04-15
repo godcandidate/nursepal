@@ -1,10 +1,39 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useTestLogic } from "./Test";
+import { scoresApi } from "../api/api";
+
+interface Score {
+  highestScore: number;
+  testId: string;
+}
 
 export const TestUI: React.FC = () => {
   const navigate = useNavigate();
   const { courseId } = useParams();
+  const [scores, setScores] = useState<Score[]>([]);
+  const [scoresLoading, setScoresLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchScores = async () => {
+      try {
+        if (courseId) {
+          const data = await scoresApi.getCourseScores(courseId);
+          setScores(data);
+        }
+      } catch (error) {
+        console.error('Error fetching scores:', error);
+      } finally {
+        setScoresLoading(false);
+      }
+    };
+
+    // Always fetch scores when we have a courseId
+    if (courseId) {
+      fetchScores();
+    }
+  }, [courseId]);
+
   const {
     loading,
     error,
@@ -33,9 +62,11 @@ export const TestUI: React.FC = () => {
         <div className="max-w-3xl mx-auto">
           <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
             <div className="prose prose-blue max-w-none mb-8">
-              <p className="text-base sm:text-lg text-gray-600 mb-4">
-                Start your journey!
-              </p>
+              <div className="flex items-center justify-between mb-6">
+                <p className="text-base sm:text-lg text-gray-600">
+                  Start your journey!
+                </p>
+              </div>
               <ul className="list-disc pl-6 mb-6 text-gray-600 text-base sm:text-lg">
                 <li className="mb-2">
                   <span className="font-medium">Practice Mode:</span> Take your
@@ -49,14 +80,10 @@ export const TestUI: React.FC = () => {
                   questions.
                 </li>
               </ul>
-              {error ? (
-                <div className="text-red-600">{error}</div>
-              ) : (
-                <div className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-4 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              )}
+            </div>
+            <div className="animate-pulse">
+              <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+              <div className="h-4 bg-gray-200 rounded w-1/2"></div>
             </div>
           </div>
         </div>
@@ -78,17 +105,22 @@ export const TestUI: React.FC = () => {
 
   // Intro screen for test ID 0
   if (window.location.pathname.includes("/test/0")) {
+
     return (
-      <div className="min-h-screen p-4 sm:p-6 lg:p-8">
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white rounded-lg shadow-sm p-6 sm:p-8">
+      <div className="min-h-screen p-4 sm:p-6 lg:p-8 bg-gradient-to-br from-blue-50 to-indigo-50">
+        <div className="max-w-3xl mx-auto space-y-6">
+          {/* Welcome Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
             <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-6">
               Hi, {localStorage.getItem("username")}
             </h1>
-            <div className="prose prose-blue max-w-none mb-8">
-              <p className="text-base sm:text-lg text-gray-600 mb-4">
-                Start your journey!
-              </p>
+
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-semibold text-gray-800">Test Instructions</h2>
+            </div>
+
+            <div className="prose prose-blue max-w-none">
+              <h3 className="text-lg font-medium text-gray-700 mb-4">Choose your preferred mode:</h3>
               <ul className="list-disc pl-6 mb-6 text-gray-600 text-base sm:text-lg">
                 <li className="mb-2">
                   <span className="font-medium">Practice Mode:</span> Take your
@@ -103,6 +135,44 @@ export const TestUI: React.FC = () => {
                 </li>
               </ul>
             </div>
+          </div>
+
+          {/* Scores Card */}
+          <div className="bg-white rounded-2xl shadow-lg p-8">
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center">
+                <svg className="w-5 h-5 mr-2 text-primary-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                </svg>
+                Your Progress
+              </h2>
+
+            </div>
+
+            {scoresLoading ? (
+              <div className="flex items-center justify-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-500"></div>
+              </div>
+            ) : scores.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {scores.map((score) => (
+                  <div key={score.testId} className="bg-gray-50 rounded-xl p-4 border border-gray-100">
+                    <div className="text-sm text-gray-500 mb-1">Test {score.testId}</div>
+                    <div className="flex items-end gap-1">
+                      <span className="text-2xl font-bold text-primary-600">{score.highestScore}%</span>
+                      <span className="text-xs text-gray-400 mb-1">highest score</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-8 text-gray-500">
+                <svg className="w-12 h-12 mx-auto mb-3 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <p>No scores available yet. Start a test to begin!</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

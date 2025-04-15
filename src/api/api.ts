@@ -69,12 +69,22 @@ export const coursesApi = {
   },
 };
 
+interface CourseScore {
+  highestScore: number;
+  testId: string;
+}
+
 export const scoresApi = {
   async submitScore(testScore: {
     testId: string;
     score: number;
   }): Promise<void> {
     await api.post(endpoints.scores.submit, testScore);
+  },
+
+  async getCourseScores(courseId: string): Promise<CourseScore[]> {
+    const response = await api.get<CourseScore[]>(endpoints.scores.byCourse(courseId));
+    return response.data;
   },
 
   async getScores(): Promise<{ testId: string; score: number }[]> {
@@ -86,6 +96,11 @@ export const scoresApi = {
     const response = await api.get(endpoints.scores.rank);
     return response.data;
   },
+
+  async submitTestScore(data: { courseId: string; testId: string; score: number; dateTaken: string }): Promise<{ message: string }> {
+    const response = await api.post<{ message: string }>(endpoints.scores.submit, data);
+    return response.data;
+  }
 };
 
 // Add request interceptor to handle errors

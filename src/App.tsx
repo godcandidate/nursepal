@@ -12,6 +12,7 @@ import { SignUp } from './pages/SignUp';
 import { Dashboard } from './pages/Dashboard';
 import { CourseDetail } from './pages/CourseDetail';
 import { Test } from './pages/Test';
+import { ScoresUI } from './pages/ScoresUI';
 
 function App() {
   return (
@@ -40,6 +41,12 @@ function App() {
               <Route path="/course/:courseId/test/:testId/:mode" element={
                 <PrivateRoute>
                   <Test />
+                </PrivateRoute>
+              } />
+
+              <Route path="/scores/:courseId" element={
+                <PrivateRoute>
+                  <ScoresUI />
                 </PrivateRoute>
               } />
 

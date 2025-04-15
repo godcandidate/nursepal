@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "react-router-dom";
-import { coursesApi } from "../api/api";
+import { coursesApi, scoresApi } from "../api/api";
 import { TestUI } from "./TestUI";
 
 interface Question {
@@ -76,10 +76,25 @@ export const useTestLogic = () => {
   useEffect(() => {
     if (testCompleted && testId) {
       const score = calculateScore();
-      // TODO: Submit score to API
-      console.log(`Score submitted: ${score}%`);
+      // Submit score to API
+      const submitScore = async () => {
+        try {
+          const dateTaken = new Date().toISOString();
+          await scoresApi.submitTestScore({
+            courseId: courseId || '',
+            testId,
+            score,
+            dateTaken
+          });
+          console.log(`Score submitted: ${score}%`);
+        } catch (error) {
+          console.error('Error submitting score:', error);
+        }
+      };
+      
+      submitScore();
     }
-  }, [testCompleted, testId, calculateScore]);
+  }, [testCompleted, testId, calculateScore, courseId]);
 
   const handleAnswer = useCallback(
     (selectedOption: string) => {

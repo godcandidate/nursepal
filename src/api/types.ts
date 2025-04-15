@@ -1,4 +1,4 @@
-import type { User, Course, CourseTest, Question } from '../types';
+import type { Course, CourseTest, Question } from "../types";
 
 export interface LoginRequest {
   email: string;
