@@ -43,7 +43,12 @@ export const useTestLogic = () => {
   // Fetch questions from API
   // Start exam timer
   useEffect(() => {
-    if (!isPracticeMode && !examStartTime && !testCompleted && questions.length > 0) {
+    if (
+      !isPracticeMode &&
+      !examStartTime &&
+      !testCompleted &&
+      questions.length > 0
+    ) {
       setExamStartTime(new Date());
       // Set time as half the number of questions in minutes
       const timeInMinutes = Math.ceil(questions.length / 2);
@@ -81,17 +86,16 @@ export const useTestLogic = () => {
         try {
           const dateTaken = new Date().toISOString();
           await scoresApi.submitTestScore({
-            courseId: courseId || '',
+            courseId: courseId || "",
             testId,
             score,
-            dateTaken
+            dateTaken,
           });
-          console.log(`Score submitted: ${score}%`);
         } catch (error) {
-          console.error('Error submitting score:', error);
+          console.error("Error submitting score:", error);
         }
       };
-      
+
       submitScore();
     }
   }, [testCompleted, testId, calculateScore, courseId]);
@@ -167,7 +171,7 @@ export const useTestLogic = () => {
   const formatTime = (seconds: number): string => {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return `${minutes}:${remainingSeconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
   };
 
   return {
