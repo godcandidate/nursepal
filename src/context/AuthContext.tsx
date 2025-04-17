@@ -24,6 +24,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userData = { id: '', name: response.name, email };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        // Store the access token
+        localStorage.setItem('accessToken', response.accessToken);
         toast.success('Login successful');
         return true; // Return success so the component can handle navigation
       }
@@ -44,6 +46,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const userData = { id: '', name: response.name, email };
         setUser(userData);
         localStorage.setItem('user', JSON.stringify(userData));
+        // Store the access token
+        localStorage.setItem('accessToken', response.accessToken);
         toast.success('Signup successful');
         return true;
       }
@@ -58,6 +62,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = () => {
     localStorage.removeItem('user');
+    localStorage.removeItem('accessToken'); // Also remove the access token
     setUser(null);
     setError(null);
     toast.success('Logged out successfully');

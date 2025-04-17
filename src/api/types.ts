@@ -14,6 +14,7 @@ export interface RegisterRequest {
 export interface AuthResponse {
   success: boolean;
   name: string;
+  accessToken: string;
   message?: string;
 }
 
